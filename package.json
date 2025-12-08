@@ -1,0 +1,20 @@
+{
+    "name": "registration-cancellation-system",
+    "version": "1.0.0",
+    "description": "報名取消系統 MVP - 透過 Google Sheets 管理課程報名",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "express-rate-limit": "^7.1.5",
+        "googleapis": "^129.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}

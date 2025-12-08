@@ -1,0 +1,4 @@
+.env
+node_modules/
+*.log
+number-inquiry-d900bba63e96.json

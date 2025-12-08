@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>報名取消系統</title>
+  <meta name="description" content="課程報名取消系統 - 查詢並取消您的課程報名">
+  <style>
+    :root {
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #252525;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --border: #333333;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--text-secondary);
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px var(--shadow);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-danger {
+      background: var(--error);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-danger:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .results {
+      display: none;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .course-list {
+      list-style: none;
+    }
+
+    .course-item {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+
+    .course-item:hover {
+      border-color: var(--accent);
+    }
+
+    .course-item.cancelled {
+      opacity: 0.6;
+    }
+
+    .course-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .course-checkbox {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .course-info {
+      flex: 1;
+    }
+
+
+    .registrant-name {
+      font-size: 0.875rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .course-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0.25rem 0;
+    }
+
+    .course-date {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: 9999px;
+    }
+
+    .status-registered {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--success);
+    }
+
+    .status-cancelled {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--error);
+    }
+
+    .cancel-form {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .cancel-form.show {
+      display: block;
+    }
+
+    .cancel-form .form-group {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .cancel-form input {
+      flex: 1;
+    }
+
+    .confirm-hint {
+      font-size: 0.875rem;
+      color: var(--warning);
+      margin-top: 0.5rem;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      border: 1px solid var(--border);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-icon.success {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--success);
+    }
+
+    .modal-icon.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--error);
+    }
+
+    .modal-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .modal h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>報名取消系統</h1>
+      <p>輸入您的身分證字號查詢課程報名狀態</p>
+    </header>
+
+    <!-- 查詢表單 -->
+    <div class="card">
+      <form id="queryForm">
+        <div class="form-group">
+          <label for="idNumber">身分證字號</label>
+          <input type="text" id="idNumber" name="idNumber" placeholder="例如：A123456789" maxlength="10" autocomplete="off"
+            required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="queryBtn">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          查詢報名
+        </button>
+      </form>
+    </div>
+
+    <!-- 錯誤訊息 -->
+    <div id="errorAlert" class="alert alert-error"></div>
+
+    <!-- 載入中 -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>查詢中，請稍候...</p>
+    </div>
+
+    <!-- 查詢結果 -->
+    <div id="results" class="results">
+      <div class="card">
+        <h2 style="margin-bottom: 1rem;">查詢結果</h2>
+        <div id="courseList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 彈窗 -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal">
+      <div id="modalIcon" class="modal-icon success">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <h2 id="modalTitle">取消成功</h2>
+      <p id="modalMessage">您的報名已成功取消。</p>
+      <button class="btn btn-primary" onclick="closeModal()">確定</button>
+    </div>
+  </div>
+
+  <script>
+    // API 基底路徑
+    const API_BASE = '';
+
+    // 當前查詢的身分證
+    let currentIdNumber = '';
+
+    // DOM 元素
+    const queryForm = document.getElementById('queryForm');
+    const idNumberInput = document.getElementById('idNumber');
+    const queryBtn = document.getElementById('queryBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const courseList = document.getElementById('courseList');
+    const errorAlert = document.getElementById('errorAlert');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+
+    // 顯示錯誤
+    function showError(message) {
+      errorAlert.textContent = message;
+      errorAlert.classList.add('show');
+      setTimeout(() => {
+        errorAlert.classList.remove('show');
+      }, 5000);
+    }
+
+    // 顯示/隱藏載入中
+    function setLoading(isLoading) {
+      if (isLoading) {
+        loading.classList.add('show');
+        results.classList.remove('show');
+        queryBtn.disabled = true;
+      } else {
+        loading.classList.remove('show');
+        queryBtn.disabled = false;
+      }
+    }
+
+    // 顯示彈窗
+    function showModal(type, title, message) {
+      modalIcon.className = `modal-icon ${type}`;
+      if (type === 'success') {
+        modalIcon.innerHTML = `
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M5 13l4 4L19 7"></path>
+          </svg>
+        `;
+      } else {
+        modalIcon.innerHTML = `
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        `;
+      }
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalOverlay.classList.add('show');
+    }
+
+    // 關閉彈窗
+    function closeModal() {
+      modalOverlay.classList.remove('show');
+    }
+
+    // 渲染課程列表
+    function renderCourses(courses) {
+      if (courses.length === 0) {
+        courseList.innerHTML = `
+          <div class="empty-state">
+            <p>查無報名資料</p>
+          </div>
+        `;
+        results.classList.add('show');
+        return;
+      }
+
+      courseList.innerHTML = courses.map((course, index) => {
+        const isCancelled = course.status === 'cancelled';
+        const statusClass = isCancelled ? 'status-cancelled' : 'status-registered';
+        const statusText = isCancelled ? '已取消' : '已報名';
+
+        return `
+          <div class="course-item ${isCancelled ? 'cancelled' : ''}" data-index="${index}">
+            <div class="course-header">
+              ${!isCancelled ? `
+                <input type="checkbox" class="course-checkbox" id="check-${index}" onchange="toggleCancelForm(${index})">
+              ` : ''}
+              <div class="course-info">
+                <div class="registrant-name">👤 ${escapeHtml(course.name)}</div>
+                <div class="course-name">${escapeHtml(course.course_name)}</div>
+                <div class="course-date">📅 ${escapeHtml(course.course_date)}</div>
+              </div>
+              <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            ${!isCancelled ? `
+              <div class="cancel-form" id="cancel-form-${index}">
+                <p class="confirm-hint">⚠️ 請輸入「我確定取消」以確認取消此報名</p>
+                <div class="form-group">
+                  <input type="text" id="confirm-${index}" placeholder="請輸入「我確定取消」">
+                  <button class="btn btn-danger" onclick="cancelCourse('${escapeHtml(course.course_name)}', ${index})">
+                    取消報名
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      results.classList.add('show');
+    }
+
+    // 切換取消表單顯示
+    function toggleCancelForm(index) {
+      const checkbox = document.getElementById(`check-${index}`);
+      const form = document.getElementById(`cancel-form-${index}`);
+      if (checkbox.checked) {
+        form.classList.add('show');
+      } else {
+        form.classList.remove('show');
+      }
+    }
+
+    // HTML 跳脫
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 查詢報名
+    async function queryRegistrations(idNumber) {
+      setLoading(true);
+      errorAlert.classList.remove('show');
+
+      try {
+        const response = await fetch(`${API_BASE}/api/query`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id_number: idNumber })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || '查詢失敗');
+        }
+
+        currentIdNumber = idNumber;
+        renderCourses(data.data);
+
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // 取消報名
+    async function cancelCourse(courseName, index) {
+      const confirmInput = document.getElementById(`confirm-${index}`);
+      const confirmText = confirmInput.value.trim();
+
+      if (confirmText !== '我確定取消') {
+        showError('請輸入正確的確認文字「我確定取消」');
+        confirmInput.focus();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id_number: currentIdNumber,
+            course_name: courseName,
+            confirm_text: confirmText
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || '取消失敗');
+        }
+
+        showModal('success', '取消成功', '您的課程報名已成功取消。系統已記錄此次操作。');
+
+        // 重新查詢以更新狀態
+        await queryRegistrations(currentIdNumber);
+
+      } catch (error) {
+        showModal('error', '取消失敗', error.message);
+      }
+    }
+
+    // 表單提交
+    queryForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const idNumber = idNumberInput.value.trim().toUpperCase();
+
+      if (!idNumber) {
+        showError('請輸入身分證字號');
+        return;
+      }
+
+      // 基本格式驗證
+      if (!/^[A-Z][12]\d{8}$/.test(idNumber)) {
+        showError('身分證字號格式不正確');
+        return;
+      }
+
+      queryRegistrations(idNumber);
+    });
+
+    // 點擊彈窗外部關閉
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        closeModal();
+      }
+    });
+
+    // ESC 關閉彈窗
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+
+</html>
