@@ -21,12 +21,20 @@ app.use(express.json());
 // CORS 設定
 const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())
-    : ['http://localhost:3000'];
+    : [];
 
 app.use(cors({
     origin: (origin, callback) => {
-        // 允許無 origin 的請求（如 curl、Postman）
+        // 允許無 origin 的請求（如 curl、Postman、同源請求）
         if (!origin) return callback(null, true);
+
+        // 允許同源請求（前端頁面請求自己的 API）
+        // Render 部署時，前端和後端在同一個網域
+        if (corsOrigins.length === 0) {
+            // 如果沒有設定 CORS_ORIGINS，允許所有來源
+            return callback(null, true);
+        }
+
         if (corsOrigins.includes(origin)) {
             callback(null, true);
         } else {
