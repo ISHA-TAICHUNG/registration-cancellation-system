@@ -577,6 +577,55 @@
         width: 100%;
       }
     }
+
+    /* Info Grid Styles */
+    .course-header {
+      align-items: flex-start;
+    }
+
+    .checkbox-wrapper {
+      padding-top: 4px;
+    }
+
+    .course-info-grid {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .info-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .info-value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .course-name-highlight {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    .date-highlight {
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .status-wrapper {
+      padding-top: 2px;
+    }
   </style>
 </head>
 
@@ -617,7 +666,7 @@
     <!-- 查詢結果 -->
     <div id="results" class="results">
       <div class="card">
-        <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--text-primary);">查詢結果</h2>
+        <h2 id="resultsHeader" style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--text-primary);">查詢結果</h2>
         <div id="courseList"></div>
       </div>
     </div>
@@ -716,6 +765,12 @@
         return;
       }
 
+      // 更新標題為「姓名 的報名紀錄」
+      if (courses.length > 0) {
+        const userName = courses[0].name;
+        document.getElementById('resultsHeader').textContent = `${escapeHtml(userName)} 的報名紀錄`;
+      }
+
       courseList.innerHTML = courses.map((course, index) => {
         const isCancelled = course.status === 'cancelled';
         const statusClass = isCancelled ? 'status-cancelled' : 'status-registered';
@@ -725,15 +780,31 @@
           <div class="course-item ${isCancelled ? 'cancelled' : ''}" data-index="${index}">
             <div class="course-header">
               ${!isCancelled ? `
-                <input type="checkbox" class="course-checkbox" id="check-${index}" onchange="toggleCancelForm(${index})">
+                <div class="checkbox-wrapper">
+                  <input type="checkbox" class="course-checkbox" id="check-${index}" onchange="toggleCancelForm(${index})">
+                </div>
               ` : ''}
-              <div class="course-info">
-                <div class="registrant-name">👤 ${escapeHtml(course.name)}</div>
-                <div class="course-name">${escapeHtml(course.course_name)}</div>
-                <div class="course-date">📅 ${escapeHtml(course.course_date)}</div>
+              
+              <div class="course-info-grid">
+                 <div class="info-row">
+                    <span class="info-label">課程名稱</span>
+                    <span class="info-value course-name-highlight">${escapeHtml(course.course_name)}</span>
+                 </div>
+                 <div class="info-row">
+                    <span class="info-label">學員姓名</span>
+                    <span class="info-value">${escapeHtml(course.name)}</span>
+                 </div>
+                 <div class="info-row">
+                    <span class="info-label">開課日期</span>
+                    <span class="info-value date-highlight">${escapeHtml(course.course_date)}</span>
+                 </div>
               </div>
-              <span class="status-badge ${statusClass}">${statusText}</span>
+
+              <div class="status-wrapper">
+                <span class="status-badge ${statusClass}">${statusText}</span>
+              </div>
             </div>
+            
             ${!isCancelled ? `
               <div class="cancel-form" id="cancel-form-${index}">
                 <p class="confirm-hint">⚠️ 請輸入「我確定取消」以確認取消此報名</p>
