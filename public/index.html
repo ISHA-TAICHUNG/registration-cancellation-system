@@ -637,6 +637,68 @@
     .status-wrapper {
       padding-top: 2px;
     }
+
+    /* Usage Guide */
+    .usage-guide {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: rgba(30, 41, 59, 0.3);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .usage-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent-primary);
+      margin-bottom: 1rem;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-sm);
+      transition: transform 0.3s ease;
+    }
+
+    .step-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      background: var(--accent-primary);
+      color: var(--bg-core);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .step-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
   </style>
 </head>
 
@@ -649,6 +711,31 @@
       <h1>課程報名取消系統</h1>
       <p>輸入您的身分證字號查詢課程報名狀態</p>
     </header>
+
+    <!-- 使用說明 -->
+    <div class="usage-guide">
+      <div class="usage-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 16v-4M12 8h.01"></path>
+        </svg>
+        使用說明
+      </div>
+      <div class="steps-grid">
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <div class="step-text">輸入您的身分證字號，點擊「查詢報名」按鈕。</div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <div class="step-text">系統將列出您目前所有報名的課程狀態。</div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <div class="step-text">若需取消，請勾選該課程並確認取消操作。</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 查詢表單 -->
     <div class="card">
