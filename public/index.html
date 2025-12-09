@@ -290,6 +290,7 @@
 
     /* Results Area */
     .results {
+      display: none;
       animation: slideUp 0.5s ease-out forwards;
     }
 
@@ -553,6 +554,40 @@
       background: rgba(248, 113, 113, 0.1);
       border: 1px solid rgba(248, 113, 113, 0.3);
       color: #fca5a5;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
     }
 
     /* Responsive */
