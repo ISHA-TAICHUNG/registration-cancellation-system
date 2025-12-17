@@ -181,7 +181,7 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
         resource: {
             values: [[
                 cancelledAt,
-                'cancel',
+                '取消上課',
                 idNumber,
                 target.name,
                 courseName,
@@ -243,7 +243,7 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
         resource: {
             values: [[
                 confirmedAt,
-                'confirm',
+                '確定上課',
                 idNumber,
                 target.name,
                 courseName,
