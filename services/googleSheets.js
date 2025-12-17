@@ -7,6 +7,23 @@ const { google } = require('googleapis');
 const REGISTRATIONS_SHEET = 'registrations';
 const AUDIT_SHEET = 'audit';
 
+/**
+ * 取得台灣時間字串 (UTC+8)
+ * @returns {string} 格式：YYYY-MM-DD HH:mm:ss
+ */
+function getTaiwanTime() {
+    return new Date().toLocaleString('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+}
+
 // 快取認證實例
 let authClient = null;
 let sheetsClient = null;
@@ -160,7 +177,7 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
         throw new Error('此課程報名已經取消');
     }
 
-    const cancelledAt = new Date().toISOString();
+    const cancelledAt = getTaiwanTime();
 
     // 更新主工作表
     // 欄位順序：A=id_number, B=name, C=course_name, D=course_date, E=status, F=cancelled_at, G=cancelled_by_ip, H=cancelled_by_ua
@@ -222,7 +239,7 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
         throw new Error('此課程報名已經取消，無法確認');
     }
 
-    const confirmedAt = new Date().toISOString();
+    const confirmedAt = getTaiwanTime();
 
     // 更新主工作表
     // 欄位順序：A=id_number, B=name, C=course_name, D=course_date, E=status, F=confirmed_at/cancelled_at, G=ip, H=ua
