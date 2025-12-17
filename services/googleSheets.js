@@ -5,7 +5,6 @@ const { google } = require('googleapis');
 
 // 工作表名稱
 const REGISTRATIONS_SHEET = 'registrations';
-const AUDIT_SHEET = 'audit';
 
 /**
  * 取得台灣時間字串 (UTC+8)
@@ -190,24 +189,6 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
         }
     });
 
-    // 寫入審計記錄（包含姓名）
-    await sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: `${AUDIT_SHEET}!A:G`,
-        valueInputOption: 'USER_ENTERED',
-        resource: {
-            values: [[
-                cancelledAt,
-                '取消上課',
-                idNumber,
-                target.name,
-                courseName,
-                clientIp,
-                userAgent
-            ]]
-        }
-    });
-
     return true;
 }
 
@@ -249,24 +230,6 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
         valueInputOption: 'USER_ENTERED',
         resource: {
             values: [['已確認', confirmedAt, clientIp, userAgent]]
-        }
-    });
-
-    // 寫入審計記錄
-    await sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: `${AUDIT_SHEET}!A:G`,
-        valueInputOption: 'USER_ENTERED',
-        resource: {
-            values: [[
-                confirmedAt,
-                '確定上課',
-                idNumber,
-                target.name,
-                courseName,
-                clientIp,
-                userAgent
-            ]]
         }
     });
 
