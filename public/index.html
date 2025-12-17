@@ -791,9 +791,9 @@
 
       courseList.innerHTML = courses.map((course, index) => {
         const status = course.status || 'registered';
-        const isCancelled = status === 'cancelled';
-        const isConfirmed = status === 'confirmed';
-        const isRegistered = status === 'registered';
+        const isCancelled = status === '已取消';
+        const isConfirmed = status === '已確認';
+        const isRegistered = !isCancelled && !isConfirmed;
 
         let statusClass, statusText;
         if (isCancelled) {

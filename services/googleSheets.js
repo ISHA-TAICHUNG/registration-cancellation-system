@@ -156,7 +156,7 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
         throw new Error('找不到該報名資料');
     }
 
-    if (target.status === 'cancelled') {
+    if (target.status === '已取消') {
         throw new Error('此課程報名已經取消');
     }
 
@@ -169,7 +169,7 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
         range: `${REGISTRATIONS_SHEET}!E${target.row_index}:H${target.row_index}`,
         valueInputOption: 'USER_ENTERED',
         resource: {
-            values: [['cancelled', cancelledAt, clientIp, userAgent]]
+            values: [['已取消', cancelledAt, clientIp, userAgent]]
         }
     });
 
@@ -214,11 +214,11 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
         throw new Error('找不到該報名資料');
     }
 
-    if (target.status === 'confirmed') {
+    if (target.status === '已確認') {
         throw new Error('此課程報名已經確認');
     }
 
-    if (target.status === 'cancelled') {
+    if (target.status === '已取消') {
         throw new Error('此課程報名已經取消，無法確認');
     }
 
@@ -231,7 +231,7 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
         range: `${REGISTRATIONS_SHEET}!E${target.row_index}:H${target.row_index}`,
         valueInputOption: 'USER_ENTERED',
         resource: {
-            values: [['confirmed', confirmedAt, clientIp, userAgent]]
+            values: [['已確認', confirmedAt, clientIp, userAgent]]
         }
     });
 
