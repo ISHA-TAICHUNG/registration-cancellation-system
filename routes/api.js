@@ -97,49 +97,51 @@ router.post('/cancel', async (req, res) => {
             error: error.message || '取消報名時發生錯誤'
         });
     }
-    /**
-     * POST /api/confirm
-     * 確認上課
-     */
-    router.post('/confirm', async (req, res) => {
-        try {
-            const { id_number, course_name } = req.body;
+});
 
-            // 驗證必要欄位
-            if (!id_number || !course_name) {
-                return res.status(400).json({
-                    success: false,
-                    error: '請提供完整資料（身分證、課程名稱）'
-                });
-            }
+/**
+ * POST /api/confirm
+ * 確認上課
+ */
+router.post('/confirm', async (req, res) => {
+    try {
+        const { id_number, course_name } = req.body;
 
-            const formattedId = formatIdNumber(id_number);
-
-            if (!validateIdNumber(formattedId)) {
-                return res.status(400).json({
-                    success: false,
-                    error: '身分證字號格式不正確'
-                });
-            }
-
-            // 取得客戶端資訊
-            const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-            const userAgent = req.headers['user-agent'] || 'unknown';
-
-            await confirmRegistration(formattedId, course_name, clientIp, userAgent);
-
-            res.json({
-                success: true,
-                message: '已成功確認上課'
-            });
-
-        } catch (error) {
-            console.error('確認錯誤:', error);
-            res.status(500).json({
+        // 驗證必要欄位
+        if (!id_number || !course_name) {
+            return res.status(400).json({
                 success: false,
-                error: error.message || '確認上課時發生錯誤'
+                error: '請提供完整資料（身分證、課程名稱）'
             });
         }
-    });
 
-    module.exports = router;
+        const formattedId = formatIdNumber(id_number);
+
+        if (!validateIdNumber(formattedId)) {
+            return res.status(400).json({
+                success: false,
+                error: '身分證字號格式不正確'
+            });
+        }
+
+        // 取得客戶端資訊
+        const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+        const userAgent = req.headers['user-agent'] || 'unknown';
+
+        await confirmRegistration(formattedId, course_name, clientIp, userAgent);
+
+        res.json({
+            success: true,
+            message: '已成功確認上課'
+        });
+
+    } catch (error) {
+        console.error('確認錯誤:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || '確認上課時發生錯誤'
+        });
+    }
+});
+
+module.exports = router;
