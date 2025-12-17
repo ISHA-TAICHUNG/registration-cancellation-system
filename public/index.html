@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>報名取消系統</title>
-  <meta name="description" content="課程報名取消系統 - 查詢並取消您的課程報名">
+  <title>課程報名確認系統</title>
+  <meta name="description" content="課程報名確認系統 - 查詢並確認您的課程報名狀態">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -393,6 +393,13 @@
       border: 1px solid rgba(248, 113, 113, 0.3);
     }
 
+    .status-confirmed {
+      background: rgba(139, 92, 246, 0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+    }
+
     /* Cancel Form */
     .cancel-form {
       margin-top: 1.5rem;
@@ -643,8 +650,8 @@
 <body>
   <div class="container">
     <header>
-      <h1>報名取消系統</h1>
-      <p>輸入您的身分證字號查詢課程報名狀態</p>
+      <h1>課程報名確認系統</h1>
+      <p>輸入您的身分證字號查詢並確認課程報名狀態</p>
     </header>
 
     <!-- 查詢表單 -->
@@ -783,14 +790,31 @@
       }
 
       courseList.innerHTML = courses.map((course, index) => {
-        const isCancelled = course.status === 'cancelled';
-        const statusClass = isCancelled ? 'status-cancelled' : 'status-registered';
-        const statusText = isCancelled ? '已取消' : '已報名';
+        const status = course.status || 'registered';
+        const isCancelled = status === 'cancelled';
+        const isConfirmed = status === 'confirmed';
+        const isRegistered = status === 'registered';
+
+        let statusClass, statusText;
+        if (isCancelled) {
+          statusClass = 'status-cancelled';
+          statusText = '已取消';
+        } else if (isConfirmed) {
+          statusClass = 'status-confirmed';
+          statusText = '已確認';
+        } else {
+          statusClass = 'status-registered';
+          statusText = '已報名';
+        }
+
+        // 顯示操作按鈕：registered 可確認/取消，confirmed 只能取消
+        const showConfirmBtn = isRegistered;
+        const showCancelCheckbox = isRegistered || isConfirmed;
 
         return `
           <div class="course-item ${isCancelled ? 'cancelled' : ''}" data-index="${index}">
             <div class="course-header">
-              ${!isCancelled ? `
+              ${showCancelCheckbox ? `
                 <div class="checkbox-wrapper">
                   <input type="checkbox" class="course-checkbox" id="check-${index}" onchange="toggleCancelForm(${index})">
                   <label for="check-${index}" class="checkbox-label">勾選取消</label>
@@ -817,7 +841,15 @@
               </div>
             </div>
             
-            ${!isCancelled ? `
+            ${showConfirmBtn ? `
+              <div class="confirm-action" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', ${index})" style="background: var(--success); color: #0f172a; box-shadow: 0 0 20px var(--success-glow);">
+                  ✓ 確定上課
+                </button>
+              </div>
+            ` : ''}
+            
+            ${showCancelCheckbox ? `
               <div class="cancel-form" id="cancel-form-${index}">
                 <p class="confirm-hint">⚠️ 請輸入「我確定取消」以確認取消此報名</p>
                 <div class="form-group">
@@ -920,6 +952,36 @@
 
       } catch (error) {
         showModal('error', '取消失敗', error.message);
+      }
+    }
+
+    // 確定上課
+    async function confirmCourse(courseName, index) {
+      try {
+        const response = await fetch(`${API_BASE}/api/confirm`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id_number: currentIdNumber,
+            course_name: courseName
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || '確認失敗');
+        }
+
+        showModal('success', '確認成功', '您已成功確認上課。系統已記錄此次操作。');
+
+        // 重新查詢以更新狀態
+        await queryRegistrations(currentIdNumber);
+
+      } catch (error) {
+        showModal('error', '確認失敗', error.message);
       }
     }
 

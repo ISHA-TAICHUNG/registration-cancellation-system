@@ -194,7 +194,70 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
     return true;
 }
 
+/**
+ * 確認上課
+ * @param {string} idNumber - 身分證字號
+ * @param {string} courseName - 課程名稱
+ * @param {string} clientIp - 客戶端 IP
+ * @param {string} userAgent - User Agent
+ * @returns {Promise<boolean>} 是否成功
+ */
+async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
+    const sheets = await getSheetsClient();
+    const spreadsheetId = getSpreadsheetId();
+
+    // 先查詢確認資料存在
+    const registrations = await queryRegistrations(idNumber);
+    const target = registrations.find(r => r.course_name === courseName);
+
+    if (!target) {
+        throw new Error('找不到該報名資料');
+    }
+
+    if (target.status === 'confirmed') {
+        throw new Error('此課程報名已經確認');
+    }
+
+    if (target.status === 'cancelled') {
+        throw new Error('此課程報名已經取消，無法確認');
+    }
+
+    const confirmedAt = new Date().toISOString();
+
+    // 更新主工作表
+    // 欄位順序：A=id_number, B=name, C=course_name, D=course_date, E=status, F=confirmed_at/cancelled_at, G=ip, H=ua
+    await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${REGISTRATIONS_SHEET}!E${target.row_index}:H${target.row_index}`,
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+            values: [['confirmed', confirmedAt, clientIp, userAgent]]
+        }
+    });
+
+    // 寫入審計記錄
+    await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${AUDIT_SHEET}!A:G`,
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+            values: [[
+                confirmedAt,
+                'confirm',
+                idNumber,
+                target.name,
+                courseName,
+                clientIp,
+                userAgent
+            ]]
+        }
+    });
+
+    return true;
+}
+
 module.exports = {
     queryRegistrations,
-    cancelRegistration
+    cancelRegistration,
+    confirmRegistration
 };
