@@ -843,7 +843,7 @@
             
             ${showConfirmBtn ? `
               <div class="confirm-action" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
-                <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', ${index})" style="background: var(--success); color: #0f172a; box-shadow: 0 0 20px var(--success-glow);">
+                <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', ${index}, '${escapeHtml(course.name)}')" style="background: var(--success); color: #0f172a; box-shadow: 0 0 20px var(--success-glow);">
                   ✓ 確定上課
                 </button>
               </div>
@@ -956,7 +956,7 @@
     }
 
     // 確定上課
-    async function confirmCourse(courseName, index) {
+    async function confirmCourse(courseName, index, studentName) {
       try {
         const response = await fetch(`${API_BASE}/api/confirm`, {
           method: 'POST',
@@ -975,7 +975,14 @@
           throw new Error(data.error || '確認失敗');
         }
 
-        showModal('success', '確認成功', '您已成功確認上課。系統已記錄此次操作。');
+        // 取得身分證後五碼
+        const idLast5 = currentIdNumber.slice(-5);
+
+        // 開啟外部網址並帶入參數
+        const externalUrl = `https://stusys-b.isha.org.tw/LA03.aspx?SeaNAME=${encodeURIComponent(studentName)}&SeaID=${idLast5}`;
+        window.open(externalUrl, '_blank');
+
+        showModal('success', '確認成功', '您已成功確認上課。系統已記錄此次操作，並已開啟報到系統。');
 
         // 重新查詢以更新狀態
         await queryRegistrations(currentIdNumber);
