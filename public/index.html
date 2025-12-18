@@ -288,6 +288,10 @@
       padding: 2.5rem;
     }
 
+    .loading.show {
+      display: block;
+    }
+
     .spinner {
       width: 48px;
       height: 48px;
@@ -306,7 +310,12 @@
 
     /* Results Area */
     .results {
+      display: none;
       animation: slideUp 0.5s ease-out forwards;
+    }
+
+    .results.show {
+      display: block;
     }
 
     .course-list {
@@ -576,6 +585,10 @@
       background: rgba(248, 113, 113, 0.1);
       border: 1px solid rgba(248, 113, 113, 0.3);
       color: #fca5a5;
+    }
+
+    .alert.show {
+      display: block;
     }
 
     /* Info Grid Styles - 桌面版 */
