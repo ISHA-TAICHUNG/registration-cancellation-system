@@ -821,10 +821,18 @@
           <div class="course-item ${isCancelled ? 'cancelled' : ''}" data-index="${index}">
             <div class="course-header">
               ${showCancelCheckbox ? `
-                <div class="checkbox-wrapper">
-                  <input type="checkbox" class="course-checkbox" id="check-${index}" onchange="toggleCancelForm(${index})">
-                  <label for="check-${index}" class="checkbox-label">勾選取消</label>
-                </div>
+                <button class="btn btn-cancel-toggle" id="cancel-btn-${index}" onclick="toggleCancelForm(${index})" style="
+                  background: transparent;
+                  color: var(--error);
+                  border: 2px solid var(--error);
+                  padding: 0.5rem 1rem;
+                  font-size: 0.85rem;
+                  border-radius: var(--radius-sm);
+                  min-width: 90px;
+                  transition: all 0.3s ease;
+                ">
+                  ✕ 取消上課
+                </button>
               ` : ''}
               
               <div class="course-info-grid">
@@ -875,12 +883,20 @@
 
     // 切換取消表單顯示
     function toggleCancelForm(index) {
-      const checkbox = document.getElementById(`check-${index}`);
       const form = document.getElementById(`cancel-form-${index}`);
-      if (checkbox.checked) {
-        form.classList.add('show');
-      } else {
+      const btn = document.getElementById(`cancel-btn-${index}`);
+      const isShowing = form.classList.contains('show');
+
+      if (isShowing) {
         form.classList.remove('show');
+        btn.innerHTML = '✕ 取消上課';
+        btn.style.background = 'transparent';
+        btn.style.color = 'var(--error)';
+      } else {
+        form.classList.add('show');
+        btn.innerHTML = '↩ 收起';
+        btn.style.background = 'var(--error)';
+        btn.style.color = 'white';
       }
     }
 
