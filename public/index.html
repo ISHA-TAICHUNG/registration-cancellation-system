@@ -578,9 +578,16 @@
       color: #fca5a5;
     }
 
-    /* Info Grid Styles */
+    /* Info Grid Styles - 桌面版 */
     .course-header {
-      align-items: flex-start;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .btn-cancel-toggle {
+      flex-shrink: 0;
     }
 
     .course-info-grid {
@@ -620,6 +627,7 @@
     }
 
     .status-wrapper {
+      flex-shrink: 0;
       padding-top: 2px;
     }
 
