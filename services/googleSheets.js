@@ -3,6 +3,7 @@
  */
 const { google } = require('googleapis');
 const { sendCancellationNotice } = require('./lineNotify');
+
 // 工作表名稱
 const REGISTRATIONS_SHEET = 'registrations';
 
@@ -188,13 +189,31 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
             values: [['已取消', cancelledAt, clientIp, userAgent]]
         }
     });
-   
+
+    // 讀取承辦人 LINE ID (I 欄 = 第 9 欄)
     try {
-        const lineIdRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${REGISTRATIONS_SHEET}!I${target.row_index}` });
-        const lineId = lineIdRes.data.values?.[0]?.[0];
-        if (lineId) await sendCancellationNotice({ id_number: idNumber, name: target.name, course_name: courseName, course_date: target.course_date }, lineId);
-    } catch (e) { console.error('LINE error:', e); }
-    
+        const lineIdResponse = await sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: `${REGISTRATIONS_SHEET}!I${target.row_index}`,
+        });
+
+        const handlerLineId = lineIdResponse.data.values?.[0]?.[0];
+
+        if (handlerLineId) {
+            await sendCancellationNotice({
+                id_number: idNumber,
+                name: target.name,
+                course_name: courseName,
+                course_date: target.course_date
+            }, handlerLineId);
+        } else {
+            console.log('該筆資料沒有承辦人 LINE ID，跳過通知');
+        }
+    } catch (lineError) {
+        console.error('LINE 通知發送失敗:', lineError);
+        // 不影響取消流程，只記錄錯誤
+    }
+
     return true;
 }
 
