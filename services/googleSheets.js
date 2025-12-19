@@ -24,6 +24,23 @@ function getTaiwanTime() {
     });
 }
 
+/**
+ * 遮蔽姓名中間字元
+ * @param {string} name - 原始姓名
+ * @returns {string} 遮蔽後的姓名（例：王＊明）
+ */
+function maskName(name) {
+    if (!name || name.length < 2) return name;
+    if (name.length === 2) {
+        return name[0] + '＊';
+    }
+    // 3 字以上：保留首尾，中間全部遮蔽
+    const first = name[0];
+    const last = name[name.length - 1];
+    const maskedMiddle = '＊'.repeat(name.length - 2);
+    return first + maskedMiddle + last;
+}
+
 // 快取認證實例
 let authClient = null;
 let sheetsClient = null;
@@ -264,5 +281,6 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
 module.exports = {
     queryRegistrations,
     cancelRegistration,
-    confirmRegistration
+    confirmRegistration,
+    maskName
 };

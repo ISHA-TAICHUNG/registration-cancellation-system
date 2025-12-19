@@ -966,7 +966,7 @@
             
             ${showConfirmBtn ? `
               <div class="confirm-action" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
-                <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', ${index}, '${escapeHtml(course.name)}')" style="background: var(--success); color: #0f172a; box-shadow: 0 0 20px var(--success-glow);">
+                <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', ${index}, '${escapeHtml(course.name_full || course.name)}')" style="background: var(--success); color: #0f172a; box-shadow: 0 0 20px var(--success-glow);">
                   ✓ 確定上課
                 </button>
               </div>

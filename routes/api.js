@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { validateIdNumber, formatIdNumber } = require('../utils/validators');
-const { queryRegistrations, cancelRegistration, confirmRegistration } = require('../services/googleSheets');
+const { queryRegistrations, cancelRegistration, confirmRegistration, maskName } = require('../services/googleSheets');
 
 /**
  * POST /api/query
@@ -32,9 +32,16 @@ router.post('/query', async (req, res) => {
 
         const registrations = await queryRegistrations(formattedId);
 
+        // 遮蔽姓名以保護個資（顯示用），但保留完整姓名供外部系統使用
+        const maskedData = registrations.map(r => ({
+            ...r,
+            name: maskName(r.name),      // 遮蔽版（顯示用）
+            name_full: r.name            // 完整版（外部連結用）
+        }));
+
         res.json({
             success: true,
-            data: registrations
+            data: maskedData
         });
 
     } catch (error) {

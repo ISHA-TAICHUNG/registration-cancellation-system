@@ -47,7 +47,7 @@ app.use(cors({
 // Rate Limiting
 const limiter = rateLimit({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 分鐘
-    max: parseInt(process.env.RATE_LIMIT_MAX) || 100, // 每個 IP 最多 100 次
+    max: parseInt(process.env.RATE_LIMIT_MAX) || 10, // 每個 IP 最多 10 次（防暴力枚舉）
     message: {
         success: false,
         error: '請求過於頻繁，請稍後再試'
