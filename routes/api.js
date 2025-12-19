@@ -5,6 +5,7 @@ const express = require('express');
 const router = express.Router();
 const { validateIdNumber, formatIdNumber } = require('../utils/validators');
 const { queryRegistrations, cancelRegistration, confirmRegistration, maskName } = require('../services/googleSheets');
+const { verifyRecaptcha } = require('../services/recaptcha');
 
 /**
  * POST /api/query
@@ -12,7 +13,16 @@ const { queryRegistrations, cancelRegistration, confirmRegistration, maskName } 
  */
 router.post('/query', async (req, res) => {
     try {
-        const { id_number } = req.body;
+        const { id_number, recaptcha_token } = req.body;
+
+        // reCAPTCHA 驗證
+        const recaptchaResult = await verifyRecaptcha(recaptcha_token);
+        if (!recaptchaResult.success) {
+            return res.status(403).json({
+                success: false,
+                error: recaptchaResult.error || '人機驗證失敗'
+            });
+        }
 
         if (!id_number) {
             return res.status(400).json({

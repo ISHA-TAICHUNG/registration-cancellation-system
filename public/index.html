@@ -750,6 +750,8 @@
       }
     }
   </style>
+  <!-- reCAPTCHA v3 -->
+  <script src="https://www.google.com/recaptcha/api.js?render=6LcB0TAsAAAAAKmLcIzvy7eWrSSQ72r5SBpVp9Nf"></script>
 </head>
 
 <body>
@@ -1016,18 +1018,27 @@
       return div.innerHTML;
     }
 
+    // reCAPTCHA Site Key
+    const RECAPTCHA_SITE_KEY = '6LcB0TAsAAAAAKmLcIzvy7eWrSSQ72r5SBpVp9Nf';
+
     // 查詢報名
     async function queryRegistrations(idNumber) {
       setLoading(true);
       errorAlert.classList.remove('show');
 
       try {
+        // 獲取 reCAPTCHA token
+        const recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'query' });
+
         const response = await fetch(`${API_BASE}/api/query`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ id_number: idNumber })
+          body: JSON.stringify({
+            id_number: idNumber,
+            recaptcha_token: recaptchaToken
+          })
         });
 
         const data = await response.json();
