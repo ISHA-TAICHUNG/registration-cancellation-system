@@ -99,20 +99,24 @@ GOOGLE_CREDENTIALS_PATH=./credentials.json
 # 伺服器設定
 PORT=3000
 
-# CORS 設定（留空允許所有來源）
-CORS_ORIGINS=
+# CORS 設定（留空允許所有來源，生產環境建議設定白名單）
+CORS_ORIGINS=https://your-domain.com
 
 # Rate Limit 設定
 RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX=100
+RATE_LIMIT_MAX=10
+
+# reCAPTCHA v3 設定（防止自動化攻擊）
+# 從 https://www.google.com/recaptcha/admin 申請
+RECAPTCHA_SECRET_KEY=您的reCAPTCHA_Secret_Key
 ```
 
 ### Google Sheets 格式
 
 試算表需包含以下欄位（第一列為標題）：
 
-| 身分證字號 | 姓名 | 課程名稱 | 開課日期 | 狀態 | 操作時間 | IP | UA |
-|-----------|------|---------|---------|------|---------|----|----|
+| 身分證字號 | 姓名 | 課程名稱 | 開課日期 | 狀態 | 操作時間 | IP | UA | 承辦人LINE_ID |
+|-----------|------|---------|---------|------|---------|----|----|--------------|
 
 ### 啟動服務
 
@@ -130,9 +134,23 @@ npm start
 
 1. 將程式碼推送至 GitHub
 2. 在 Render 建立 Web Service
-3. 設定環境變數（同上）
+3. 設定環境變數（同上，記得加入 `RECAPTCHA_SECRET_KEY`）
 4. 部署完成後即可使用
 
 ---
 
+## 安全機制
+
+| 機制 | 說明 |
+|------|------|
+| **reCAPTCHA v3** | 自動阻擋機器人和腳本攻擊 |
+| **Rate Limiting** | 每 IP 15 分鐘內最多 10 次請求 |
+| **姓名遮蔽** | 畫面顯示部分遮蔽姓名（如：王＊明） |
+| **身分證驗證** | 格式檢查避免無效輸入 |
+| **XSS 防護** | 輸出內容 HTML 編碼 |
+| **操作記錄** | 記錄 IP、User-Agent、時間戳 |
+
+---
+
 *最後更新：2024年12月*
+
