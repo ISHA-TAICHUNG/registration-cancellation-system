@@ -2,7 +2,7 @@
  * Google Sheets 服務
  */
 const { google } = require('googleapis');
-
+const { sendCancellationNotice } = require('./lineNotify');
 // 工作表名稱
 const REGISTRATIONS_SHEET = 'registrations';
 
@@ -188,7 +188,13 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
             values: [['已取消', cancelledAt, clientIp, userAgent]]
         }
     });
-
+   
+    try {
+        const lineIdRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${REGISTRATIONS_SHEET}!I${target.row_index}` });
+        const lineId = lineIdRes.data.values?.[0]?.[0];
+        if (lineId) await sendCancellationNotice({ id_number: idNumber, name: target.name, course_name: courseName, course_date: target.course_date }, lineId);
+    } catch (e) { console.error('LINE error:', e); }
+    
     return true;
 }
 
