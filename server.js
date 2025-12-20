@@ -62,6 +62,11 @@ app.use(express.static('public'));
 
 // ==================== 路由 ====================
 
+// Health check endpoint（用於 keep-alive 監控，不受 rate limit 限制）
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.use('/api', apiRoutes);
 
 // 根路徑導向前端頁面
