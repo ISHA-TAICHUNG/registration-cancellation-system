@@ -125,7 +125,6 @@ async function queryRegistrations(idNumber) {
     });
 
     const rows = response.data.values || [];
-    console.log('讀取到的資料行數:', rows.length);
 
     if (rows.length === 0) {
         return [];
@@ -133,7 +132,6 @@ async function queryRegistrations(idNumber) {
 
     // 第一列為標題（加入 trim 處理）
     const headers = rows[0].map(h => (h || '').toString().trim());
-    console.log('標題列:', headers);
 
     // 使用中文標題
     const idIndex = headers.indexOf('身分證字號');
@@ -142,10 +140,8 @@ async function queryRegistrations(idNumber) {
     const courseDateIndex = headers.indexOf('開課日期');
     const statusIndex = headers.indexOf('狀態');
 
-    console.log('欄位索引 - 身分證字號:', idIndex, '姓名:', nameIndex, '課程名稱:', courseNameIndex);
-
     if (idIndex === -1) {
-        throw new Error('試算表缺少「身分證字號」欄位。目前標題: ' + headers.join(', '));
+        throw new Error('試算表缺少「身分證字號」欄位');
     }
 
     // 過濾出符合身分證的資料
@@ -153,7 +149,6 @@ async function queryRegistrations(idNumber) {
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         const rowIdNumber = (row[idIndex] || '').toString().trim();
-        console.log(`第 ${i + 1} 列，id_number: "${rowIdNumber}"，比對: "${idNumber}"`);
 
         if (rowIdNumber === idNumber) {
             results.push({
@@ -166,7 +161,6 @@ async function queryRegistrations(idNumber) {
         }
     }
 
-    console.log('找到的結果數:', results.length);
     return results;
 }
 
