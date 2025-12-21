@@ -9,11 +9,11 @@ const { verifyRecaptcha } = require('../services/recaptcha');
 
 /**
  * POST /api/query
- * 根據身分證和生日查詢課程報名資料
+ * 根據身分證查詢課程報名資料
  */
 router.post('/query', async (req, res) => {
     try {
-        const { id_number, birthday, recaptcha_token } = req.body;
+        const { id_number, recaptcha_token } = req.body;
 
         // reCAPTCHA 驗證
         const recaptchaResult = await verifyRecaptcha(recaptcha_token);
@@ -31,21 +31,6 @@ router.post('/query', async (req, res) => {
             });
         }
 
-        if (!birthday) {
-            return res.status(400).json({
-                success: false,
-                error: '請提供生日'
-            });
-        }
-
-        // 驗證生日格式（民國年7碼數字，如 0810516）
-        if (!/^\d{7}$/.test(birthday)) {
-            return res.status(400).json({
-                success: false,
-                error: '生日格式不正確，請輸入民國年7碼數字（如 0810516）'
-            });
-        }
-
         const formattedId = formatIdNumber(id_number);
 
         if (!validateIdNumber(formattedId)) {
@@ -55,7 +40,7 @@ router.post('/query', async (req, res) => {
             });
         }
 
-        const registrations = await queryRegistrations(formattedId, birthday);
+        const registrations = await queryRegistrations(formattedId);
 
         // 遮蔽姓名以保護個資（顯示用），但保留完整姓名供外部系統使用
         const maskedData = registrations.map(r => ({
@@ -84,13 +69,13 @@ router.post('/query', async (req, res) => {
  */
 router.post('/cancel', async (req, res) => {
     try {
-        const { id_number, birthday, course_name, confirm_text } = req.body;
+        const { id_number, course_name, confirm_text } = req.body;
 
         // 驗證必要欄位
-        if (!id_number || !birthday || !course_name || !confirm_text) {
+        if (!id_number || !course_name || !confirm_text) {
             return res.status(400).json({
                 success: false,
-                error: '請提供完整資料（身分證、生日、課程名稱、確認文字）'
+                error: '請提供完整資料（身分證、課程名稱、確認文字）'
             });
         }
 
@@ -115,7 +100,7 @@ router.post('/cancel', async (req, res) => {
         const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
         const userAgent = req.headers['user-agent'] || 'unknown';
 
-        await cancelRegistration(formattedId, birthday, course_name, clientIp, userAgent);
+        await cancelRegistration(formattedId, course_name, clientIp, userAgent);
 
         res.json({
             success: true,
@@ -137,13 +122,13 @@ router.post('/cancel', async (req, res) => {
  */
 router.post('/confirm', async (req, res) => {
     try {
-        const { id_number, birthday, course_name } = req.body;
+        const { id_number, course_name } = req.body;
 
         // 驗證必要欄位
-        if (!id_number || !birthday || !course_name) {
+        if (!id_number || !course_name) {
             return res.status(400).json({
                 success: false,
-                error: '請提供完整資料（身分證、生日、課程名稱）'
+                error: '請提供完整資料（身分證、課程名稱）'
             });
         }
 
@@ -160,7 +145,7 @@ router.post('/confirm', async (req, res) => {
         const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
         const userAgent = req.headers['user-agent'] || 'unknown';
 
-        await confirmRegistration(formattedId, birthday, course_name, clientIp, userAgent);
+        await confirmRegistration(formattedId, course_name, clientIp, userAgent);
 
         res.json({
             success: true,

@@ -110,12 +110,11 @@ function getSpreadsheetId() {
 }
 
 /**
- * 根據身分證和生日查詢課程報名資料
+ * 根據身分證查詢課程報名資料
  * @param {string} idNumber - 身分證字號
- * @param {string} birthday - 生日（民國年7碼，如 0810516）
  * @returns {Promise<Array>} 課程列表
  */
-async function queryRegistrations(idNumber, birthday) {
+async function queryRegistrations(idNumber) {
     const sheets = await getSheetsClient();
     const spreadsheetId = getSpreadsheetId();
 
@@ -134,7 +133,7 @@ async function queryRegistrations(idNumber, birthday) {
     // 第一列為標題（加入 trim 處理）
     const headers = rows[0].map(h => (h || '').toString().trim());
 
-    // 使用中文標題（新欄位結構：A:身分證 B:姓名 C:生日 D:課程名稱 E:開課日期 F:狀態 G:時間 H:IP I:UA J:LINE ID）
+    // 使用中文標題（欄位結構：A:身分證 B:姓名 C:生日 D:課程名稱 E:開課日期 F:狀態 G:時間 H:IP I:UA J:LINE ID）
     const idIndex = headers.indexOf('身分證字號');
     const nameIndex = headers.indexOf('姓名');
     const birthdayIndex = headers.indexOf('生日');
@@ -146,23 +145,18 @@ async function queryRegistrations(idNumber, birthday) {
         throw new Error('試算表缺少「身分證字號」欄位');
     }
 
-    if (birthdayIndex === -1) {
-        throw new Error('試算表缺少「生日」欄位');
-    }
-
-    // 過濾出符合身分證和生日的資料
+    // 過濾出符合身分證的資料
     const results = [];
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         const rowIdNumber = (row[idIndex] || '').toString().trim();
-        const rowBirthday = (row[birthdayIndex] || '').toString().trim();
 
-        // 需要身分證和生日都符合
-        if (rowIdNumber === idNumber && rowBirthday === birthday) {
+        // 只比對身分證
+        if (rowIdNumber === idNumber) {
             results.push({
                 row_index: i + 1, // 1-indexed for Google Sheets
                 name: (row[nameIndex] || '').toString().trim(),
-                birthday: rowBirthday,
+                birthday: birthdayIndex !== -1 ? (row[birthdayIndex] || '').toString().trim() : '',
                 course_name: (row[courseNameIndex] || '').toString().trim(),
                 course_date: (row[courseDateIndex] || '').toString().trim(),
                 status: (row[statusIndex] || 'registered').toString().trim(),
@@ -176,18 +170,17 @@ async function queryRegistrations(idNumber, birthday) {
 /**
  * 取消報名
  * @param {string} idNumber - 身分證字號
- * @param {string} birthday - 生日
  * @param {string} courseName - 課程名稱
  * @param {string} clientIp - 客戶端 IP
  * @param {string} userAgent - User Agent
  * @returns {Promise<boolean>} 是否成功
  */
-async function cancelRegistration(idNumber, birthday, courseName, clientIp, userAgent) {
+async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
     const sheets = await getSheetsClient();
     const spreadsheetId = getSpreadsheetId();
 
     // 先查詢確認資料存在
-    const registrations = await queryRegistrations(idNumber, birthday);
+    const registrations = await queryRegistrations(idNumber);
     const target = registrations.find(r => r.course_name === courseName);
 
     if (!target) {
@@ -241,18 +234,17 @@ async function cancelRegistration(idNumber, birthday, courseName, clientIp, user
 /**
  * 確認上課
  * @param {string} idNumber - 身分證字號
- * @param {string} birthday - 生日
  * @param {string} courseName - 課程名稱
  * @param {string} clientIp - 客戶端 IP
  * @param {string} userAgent - User Agent
  * @returns {Promise<boolean>} 是否成功
  */
-async function confirmRegistration(idNumber, birthday, courseName, clientIp, userAgent) {
+async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
     const sheets = await getSheetsClient();
     const spreadsheetId = getSpreadsheetId();
 
     // 先查詢確認資料存在
-    const registrations = await queryRegistrations(idNumber, birthday);
+    const registrations = await queryRegistrations(idNumber);
     const target = registrations.find(r => r.course_name === courseName);
 
     if (!target) {

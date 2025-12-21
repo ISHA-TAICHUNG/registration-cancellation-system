@@ -771,11 +771,6 @@
           <input type="text" id="idNumber" name="idNumber" placeholder="例如：A123456789" maxlength="10" autocomplete="off"
             required>
         </div>
-        <div class="form-group">
-          <label for="birthday">學員生日（民國年7碼）</label>
-          <input type="text" id="birthday" name="birthday" placeholder="例如：0810516（民國81年5月16日）" maxlength="7"
-            autocomplete="off" required>
-        </div>
         <button type="submit" class="btn btn-primary" id="queryBtn">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"></circle>
@@ -852,14 +847,12 @@
     // API 基底路徑
     const API_BASE = '';
 
-    // 當前查詢的身分證和生日
+    // 當前查詢的身分證
     let currentIdNumber = '';
-    let currentBirthday = '';
 
     // DOM 元素
     const queryForm = document.getElementById('queryForm');
     const idNumberInput = document.getElementById('idNumber');
-    const birthdayInput = document.getElementById('birthday');
     const queryBtn = document.getElementById('queryBtn');
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');
@@ -987,6 +980,10 @@
                     <span class="info-value">${escapeHtml(course.name)}</span>
                  </div>
                  <div class="info-row">
+                    <span class="info-label">學員生日</span>
+                    <span class="info-value">${escapeHtml(course.birthday || '未填寫')}</span>
+                 </div>
+                 <div class="info-row">
                     <span class="info-label">開課日期</span>
                     <span class="info-value date-highlight">${escapeHtml(course.course_date)}</span>
                  </div>
@@ -1053,7 +1050,7 @@
     const RECAPTCHA_SITE_KEY = '6LcB0TAsAAAAAKmLcIzvy7eWrSSQ72r5SBpVp9Nf';
 
     // 查詢報名
-    async function queryRegistrations(idNumber, birthday) {
+    async function queryRegistrations(idNumber) {
       setLoading(true);
       errorAlert.classList.remove('show');
 
@@ -1068,7 +1065,6 @@
           },
           body: JSON.stringify({
             id_number: idNumber,
-            birthday: birthday,
             recaptcha_token: recaptchaToken
           })
         });
@@ -1080,7 +1076,6 @@
         }
 
         currentIdNumber = idNumber;
-        currentBirthday = birthday;
         renderCourses(data.data);
 
       } catch (error) {
@@ -1109,7 +1104,6 @@
           },
           body: JSON.stringify({
             id_number: currentIdNumber,
-            birthday: currentBirthday,
             course_name: courseName,
             confirm_text: confirmText
           })
@@ -1124,7 +1118,7 @@
         showModal('success', '取消成功', '您的課程報名已成功取消。系統已記錄此次操作。');
 
         // 重新查詢以更新狀態
-        await queryRegistrations(currentIdNumber, currentBirthday);
+        await queryRegistrations(currentIdNumber);
 
       } catch (error) {
         showModal('error', '取消失敗', error.message);
@@ -1141,7 +1135,6 @@
           },
           body: JSON.stringify({
             id_number: currentIdNumber,
-            birthday: currentBirthday,
             course_name: courseName
           })
         });
@@ -1162,7 +1155,7 @@
         showModal('success', '確認成功', '您已成功確認上課。系統已記錄此次操作，並已開啟報到系統。');
 
         // 重新查詢以更新狀態
-        await queryRegistrations(currentIdNumber, currentBirthday);
+        await queryRegistrations(currentIdNumber);
 
       } catch (error) {
         showModal('error', '確認失敗', error.message);
@@ -1173,7 +1166,6 @@
     queryForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const idNumber = idNumberInput.value.trim().toUpperCase();
-      const birthday = birthdayInput.value.trim();
 
       if (!idNumber) {
         showError('請輸入身分證字號');
@@ -1186,18 +1178,7 @@
         return;
       }
 
-      if (!birthday) {
-        showError('請輸入學員生日');
-        return;
-      }
-
-      // 生日格式驗證（民國年7碼數字）
-      if (!/^\d{7}$/.test(birthday)) {
-        showError('生日格式不正確，請輸入民國年7碼數字（如 0810516）');
-        return;
-      }
-
-      queryRegistrations(idNumber, birthday);
+      queryRegistrations(idNumber);
     });
 
     // 點擊彈窗外部關閉
