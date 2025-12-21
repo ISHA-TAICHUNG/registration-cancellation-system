@@ -771,6 +771,11 @@
           <input type="text" id="idNumber" name="idNumber" placeholder="例如：A123456789" maxlength="10" autocomplete="off"
             required>
         </div>
+        <div class="form-group">
+          <label for="birthday">學員生日（民國年7碼）</label>
+          <input type="text" id="birthday" name="birthday" placeholder="例如：0810516（民國81年5月16日）" maxlength="7"
+            autocomplete="off" required>
+        </div>
         <button type="submit" class="btn btn-primary" id="queryBtn">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"></circle>
@@ -802,6 +807,30 @@
         <h2 id="resultsHeader" style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--text-primary);">查詢結果</h2>
         <div id="courseList"></div>
       </div>
+
+      <!-- 聯繫提示區塊 -->
+      <div class="contact-notice" style="
+        margin-top: 1.5rem;
+        padding: 1.25rem;
+        background: rgba(251, 191, 36, 0.1);
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(251, 191, 36, 0.25);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.7;
+      ">
+        <p style="margin-bottom: 0.75rem; color: var(--warning); font-weight: 600;">
+          📞 個資有誤或課程問題，請直接聯繫：
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li style="margin-bottom: 0.4rem;"><strong>復興教室：</strong><a href="tel:04-22249535"
+              style="color: var(--accent-primary); text-decoration: none;">04-22249535</a></li>
+          <li style="margin-bottom: 0.4rem;"><strong>忠明教室：</strong><a href="tel:04-22608999"
+              style="color: var(--accent-primary); text-decoration: none;">04-22608999</a></li>
+          <li><strong>龍井教室：</strong><a href="tel:04-26336999"
+              style="color: var(--accent-primary); text-decoration: none;">04-26336999</a></li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -823,12 +852,14 @@
     // API 基底路徑
     const API_BASE = '';
 
-    // 當前查詢的身分證
+    // 當前查詢的身分證和生日
     let currentIdNumber = '';
+    let currentBirthday = '';
 
     // DOM 元素
     const queryForm = document.getElementById('queryForm');
     const idNumberInput = document.getElementById('idNumber');
+    const birthdayInput = document.getElementById('birthday');
     const queryBtn = document.getElementById('queryBtn');
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');
@@ -969,7 +1000,7 @@
             ${showConfirmBtn ? `
               <div class="confirm-action" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
                 <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', ${index}, '${escapeHtml(course.name_full || course.name)}')" style="background: var(--success); color: #0f172a; box-shadow: 0 0 20px var(--success-glow);">
-                  ✓ 確定上課
+                  ✓ 個資無誤，確定上課
                 </button>
               </div>
             ` : ''}
@@ -1022,7 +1053,7 @@
     const RECAPTCHA_SITE_KEY = '6LcB0TAsAAAAAKmLcIzvy7eWrSSQ72r5SBpVp9Nf';
 
     // 查詢報名
-    async function queryRegistrations(idNumber) {
+    async function queryRegistrations(idNumber, birthday) {
       setLoading(true);
       errorAlert.classList.remove('show');
 
@@ -1037,6 +1068,7 @@
           },
           body: JSON.stringify({
             id_number: idNumber,
+            birthday: birthday,
             recaptcha_token: recaptchaToken
           })
         });
@@ -1048,6 +1080,7 @@
         }
 
         currentIdNumber = idNumber;
+        currentBirthday = birthday;
         renderCourses(data.data);
 
       } catch (error) {
@@ -1090,7 +1123,7 @@
         showModal('success', '取消成功', '您的課程報名已成功取消。系統已記錄此次操作。');
 
         // 重新查詢以更新狀態
-        await queryRegistrations(currentIdNumber);
+        await queryRegistrations(currentIdNumber, currentBirthday);
 
       } catch (error) {
         showModal('error', '取消失敗', error.message);
@@ -1127,7 +1160,7 @@
         showModal('success', '確認成功', '您已成功確認上課。系統已記錄此次操作，並已開啟報到系統。');
 
         // 重新查詢以更新狀態
-        await queryRegistrations(currentIdNumber);
+        await queryRegistrations(currentIdNumber, currentBirthday);
 
       } catch (error) {
         showModal('error', '確認失敗', error.message);
@@ -1138,19 +1171,31 @@
     queryForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const idNumber = idNumberInput.value.trim().toUpperCase();
+      const birthday = birthdayInput.value.trim();
 
       if (!idNumber) {
         showError('請輸入身分證字號');
         return;
       }
 
-      // 基本格式驗證
+      // 身分證格式驗證
       if (!/^[A-Z][12]\d{8}$/.test(idNumber)) {
         showError('身分證字號格式不正確');
         return;
       }
 
-      queryRegistrations(idNumber);
+      if (!birthday) {
+        showError('請輸入學員生日');
+        return;
+      }
+
+      // 生日格式驗證（民國年7碼數字）
+      if (!/^\d{7}$/.test(birthday)) {
+        showError('生日格式不正確，請輸入民國年7碼數字（如 0810516）');
+        return;
+      }
+
+      queryRegistrations(idNumber, birthday);
     });
 
     // 點擊彈窗外部關閉

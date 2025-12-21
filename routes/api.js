@@ -9,11 +9,11 @@ const { verifyRecaptcha } = require('../services/recaptcha');
 
 /**
  * POST /api/query
- * 根據身分證查詢課程報名資料
+ * 根據身分證和生日查詢課程報名資料
  */
 router.post('/query', async (req, res) => {
     try {
-        const { id_number, recaptcha_token } = req.body;
+        const { id_number, birthday, recaptcha_token } = req.body;
 
         // reCAPTCHA 驗證
         const recaptchaResult = await verifyRecaptcha(recaptcha_token);
@@ -31,6 +31,21 @@ router.post('/query', async (req, res) => {
             });
         }
 
+        if (!birthday) {
+            return res.status(400).json({
+                success: false,
+                error: '請提供生日'
+            });
+        }
+
+        // 驗證生日格式（民國年7碼數字，如 0810516）
+        if (!/^\d{7}$/.test(birthday)) {
+            return res.status(400).json({
+                success: false,
+                error: '生日格式不正確，請輸入民國年7碼數字（如 0810516）'
+            });
+        }
+
         const formattedId = formatIdNumber(id_number);
 
         if (!validateIdNumber(formattedId)) {
@@ -40,7 +55,7 @@ router.post('/query', async (req, res) => {
             });
         }
 
-        const registrations = await queryRegistrations(formattedId);
+        const registrations = await queryRegistrations(formattedId, birthday);
 
         // 遮蔽姓名以保護個資（顯示用），但保留完整姓名供外部系統使用
         const maskedData = registrations.map(r => ({

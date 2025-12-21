@@ -110,18 +110,19 @@ function getSpreadsheetId() {
 }
 
 /**
- * 根據身分證查詢課程報名資料
+ * 根據身分證和生日查詢課程報名資料
  * @param {string} idNumber - 身分證字號
+ * @param {string} birthday - 生日（民國年7碼，如 0810516）
  * @returns {Promise<Array>} 課程列表
  */
-async function queryRegistrations(idNumber) {
+async function queryRegistrations(idNumber, birthday) {
     const sheets = await getSheetsClient();
     const spreadsheetId = getSpreadsheetId();
 
-    // 讀取所有報名資料
+    // 讀取所有報名資料（A:J 欄位）
     const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${REGISTRATIONS_SHEET}!A:H`,
+        range: `${REGISTRATIONS_SHEET}!A:J`,
     });
 
     const rows = response.data.values || [];
@@ -133,9 +134,10 @@ async function queryRegistrations(idNumber) {
     // 第一列為標題（加入 trim 處理）
     const headers = rows[0].map(h => (h || '').toString().trim());
 
-    // 使用中文標題
+    // 使用中文標題（新欄位結構：A:身分證 B:姓名 C:生日 D:課程名稱 E:開課日期 F:狀態 G:時間 H:IP I:UA J:LINE ID）
     const idIndex = headers.indexOf('身分證字號');
     const nameIndex = headers.indexOf('姓名');
+    const birthdayIndex = headers.indexOf('生日');
     const courseNameIndex = headers.indexOf('課程名稱');
     const courseDateIndex = headers.indexOf('開課日期');
     const statusIndex = headers.indexOf('狀態');
@@ -144,16 +146,23 @@ async function queryRegistrations(idNumber) {
         throw new Error('試算表缺少「身分證字號」欄位');
     }
 
-    // 過濾出符合身分證的資料
+    if (birthdayIndex === -1) {
+        throw new Error('試算表缺少「生日」欄位');
+    }
+
+    // 過濾出符合身分證和生日的資料
     const results = [];
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         const rowIdNumber = (row[idIndex] || '').toString().trim();
+        const rowBirthday = (row[birthdayIndex] || '').toString().trim();
 
-        if (rowIdNumber === idNumber) {
+        // 需要身分證和生日都符合
+        if (rowIdNumber === idNumber && rowBirthday === birthday) {
             results.push({
                 row_index: i + 1, // 1-indexed for Google Sheets
                 name: (row[nameIndex] || '').toString().trim(),
+                birthday: rowBirthday,
                 course_name: (row[courseNameIndex] || '').toString().trim(),
                 course_date: (row[courseDateIndex] || '').toString().trim(),
                 status: (row[statusIndex] || 'registered').toString().trim(),
@@ -191,21 +200,21 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
     const cancelledAt = getTaiwanTime();
 
     // 更新主工作表
-    // 欄位順序：A=id_number, B=name, C=course_name, D=course_date, E=status, F=cancelled_at, G=cancelled_by_ip, H=cancelled_by_ua
+    // 欄位順序：A=id_number, B=name, C=birthday, D=course_name, E=course_date, F=status, G=cancelled_at, H=cancelled_by_ip, I=cancelled_by_ua
     await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${REGISTRATIONS_SHEET}!E${target.row_index}:H${target.row_index}`,
+        range: `${REGISTRATIONS_SHEET}!F${target.row_index}:I${target.row_index}`,
         valueInputOption: 'USER_ENTERED',
         resource: {
             values: [['已取消', cancelledAt, clientIp, userAgent]]
         }
     });
 
-    // 讀取承辦人 LINE ID (I 欄 = 第 9 欄)
+    // 讀取承辦人 LINE ID (J 欄 = 第 10 欄)
     try {
         const lineIdResponse = await sheets.spreadsheets.values.get({
             spreadsheetId,
-            range: `${REGISTRATIONS_SHEET}!I${target.row_index}`,
+            range: `${REGISTRATIONS_SHEET}!J${target.row_index}`,
         });
 
         const handlerLineId = lineIdResponse.data.values?.[0]?.[0];
@@ -259,10 +268,10 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
     const confirmedAt = getTaiwanTime();
 
     // 更新主工作表
-    // 欄位順序：A=id_number, B=name, C=course_name, D=course_date, E=status, F=confirmed_at/cancelled_at, G=ip, H=ua
+    // 欄位順序：A=id_number, B=name, C=birthday, D=course_name, E=course_date, F=status, G=confirmed_at/cancelled_at, H=ip, I=ua
     await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${REGISTRATIONS_SHEET}!E${target.row_index}:H${target.row_index}`,
+        range: `${REGISTRATIONS_SHEET}!F${target.row_index}:I${target.row_index}`,
         valueInputOption: 'USER_ENTERED',
         resource: {
             values: [['已確認', confirmedAt, clientIp, userAgent]]
