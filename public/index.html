@@ -931,7 +931,7 @@
       courseList.innerHTML = courses.map((course, index) => {
         const status = course.status || 'registered';
         const isCancelled = status === '已取消';
-        const isConfirmed = status === '已確認';
+        const isConfirmed = status === '確定上課';
         const isRegistered = !isCancelled && !isConfirmed;
 
         let statusClass, statusText;
@@ -940,7 +940,7 @@
           statusText = '已取消';
         } else if (isConfirmed) {
           statusClass = 'status-confirmed';
-          statusText = '已確認';
+          statusText = '確定上課';
         } else {
           statusClass = 'status-registered';
           statusText = '已報名';

@@ -257,7 +257,7 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
         throw new Error('找不到該報名資料');
     }
 
-    if (target.status === '已確認') {
+    if (target.status === '確定上課') {
         throw new Error('此課程報名已經確認');
     }
 
@@ -274,7 +274,7 @@ async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
         range: `${REGISTRATIONS_SHEET}!F${target.row_index}:I${target.row_index}`,
         valueInputOption: 'USER_ENTERED',
         resource: {
-            values: [['已確認', confirmedAt, clientIp, userAgent]]
+            values: [['確定上課', confirmedAt, clientIp, userAgent]]
         }
     });
 
