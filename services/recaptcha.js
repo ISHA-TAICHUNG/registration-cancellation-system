@@ -10,7 +10,7 @@ const RECAPTCHA_VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify';
  * @param {number} minScore - 最低通過分數（0.0~1.0），預設 0.5
  * @returns {Promise<{success: boolean, score?: number, error?: string}>}
  */
-async function verifyRecaptcha(token, minScore = 0.5) {
+async function verifyRecaptcha(token, minScore = 0.3) {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
     // 如果沒有設定 secret key，跳過驗證（開發模式）
@@ -33,6 +33,9 @@ async function verifyRecaptcha(token, minScore = 0.5) {
         });
 
         const data = await response.json();
+
+        // 印出完整回應以便除錯
+        console.log('reCAPTCHA 驗證回應:', JSON.stringify(data));
 
         if (!data.success) {
             console.error('reCAPTCHA 驗證失敗:', data['error-codes']);
