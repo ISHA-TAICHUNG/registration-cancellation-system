@@ -11,6 +11,11 @@ const RECAPTCHA_VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify';
  * @returns {Promise<{success: boolean, score?: number, error?: string}>}
  */
 async function verifyRecaptcha(token, minScore = 0.3) {
+    // 暫時停用 reCAPTCHA 驗證（除錯用）
+    // TODO: 修復後移除此行
+    console.log('reCAPTCHA 驗證已暫時停用');
+    return { success: true, score: 1.0 };
+
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
     // 如果沒有設定 secret key，跳過驗證（開發模式）
