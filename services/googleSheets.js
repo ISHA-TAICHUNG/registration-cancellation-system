@@ -133,13 +133,19 @@ async function queryRegistrations(idNumber) {
     // 第一列為標題（加入 trim 處理）
     const headers = rows[0].map(h => (h || '').toString().trim());
 
-    // 使用中文標題（欄位結構：A:身分證 B:姓名 C:生日 D:課程名稱 E:開課日期 F:狀態 G:時間 H:IP I:UA J:LINE ID）
+    // 使用中文標題查找欄位（欄位結構：A:身分證 B:姓名 C:生日 D:課程名稱 E:開課日期 F:狀態 G:時間 H:IP I:UA J:LINE ID）
+    // 如果找不到標題，使用固定位置（C欄=索引2 是生日）
     const idIndex = headers.indexOf('身分證字號');
     const nameIndex = headers.indexOf('姓名');
-    const birthdayIndex = headers.indexOf('生日');
+    let birthdayIndex = headers.indexOf('生日');
     const courseNameIndex = headers.indexOf('課程名稱');
     const courseDateIndex = headers.indexOf('開課日期');
     const statusIndex = headers.indexOf('狀態');
+
+    // 如果找不到「生日」標題，假設 C 欄（索引 2）是生日
+    if (birthdayIndex === -1) {
+        birthdayIndex = 2;
+    }
 
     if (idIndex === -1) {
         throw new Error('試算表缺少「身分證字號」欄位');
@@ -156,7 +162,7 @@ async function queryRegistrations(idNumber) {
             results.push({
                 row_index: i + 1, // 1-indexed for Google Sheets
                 name: (row[nameIndex] || '').toString().trim(),
-                birthday: birthdayIndex !== -1 ? (row[birthdayIndex] || '').toString().trim() : '',
+                birthday: (row[birthdayIndex] || '').toString().trim(),
                 course_name: (row[courseNameIndex] || '').toString().trim(),
                 course_date: (row[courseDateIndex] || '').toString().trim(),
                 status: (row[statusIndex] || 'registered').toString().trim(),

@@ -42,16 +42,15 @@ router.post('/query', async (req, res) => {
 
         const registrations = await queryRegistrations(formattedId);
 
-        // 遮蔽姓名以保護個資（顯示用），但保留完整姓名供外部系統使用
-        const maskedData = registrations.map(r => ({
+        // 直接返回完整資料（不遮蔽姓名）
+        const responseData = registrations.map(r => ({
             ...r,
-            name: maskName(r.name),      // 遮蔽版（顯示用）
-            name_full: r.name            // 完整版（外部連結用）
+            name_full: r.name  // 完整姓名供外部連結使用
         }));
 
         res.json({
             success: true,
-            data: maskedData
+            data: responseData
         });
 
     } catch (error) {
