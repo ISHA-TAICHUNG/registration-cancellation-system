@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { validateIdNumber, formatIdNumber } = require('../utils/validators');
-const { queryRegistrations, cancelRegistration, confirmRegistration, maskName } = require('../services/googleSheets');
+const { queryRegistrations, cancelRegistration, confirmRegistration } = require('../services/googleSheets');
 const { verifyRecaptcha } = require('../services/recaptcha');
 
 /**

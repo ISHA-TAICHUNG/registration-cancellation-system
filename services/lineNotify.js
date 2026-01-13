@@ -12,7 +12,7 @@ const LINE_API_URL = 'https://api.line.me/v2/bot/message/push';
  */
 async function sendLineMessage(userId, message) {
     const channelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-    
+
     if (!channelAccessToken) {
         console.warn('LINE_CHANNEL_ACCESS_TOKEN 未設定，跳過 LINE 通知');
         return false;
@@ -36,15 +36,20 @@ async function sendLineMessage(userId, message) {
             })
         });
 
-        const result = await response.json();
-        
+        // 先檢查 HTTP 狀態
         if (response.ok) {
-            console.log('LINE 通知發送成功:', result);
+            console.log('LINE 通知發送成功');
             return true;
-        } else {
-            console.error('LINE 通知發送失敗:', result);
-            return false;
         }
+
+        // 嘗試解析錯誤訊息
+        try {
+            const result = await response.json();
+            console.error('LINE 通知發送失敗:', result);
+        } catch {
+            console.error('LINE 通知發送失敗，狀態碼:', response.status);
+        }
+        return false;
     } catch (error) {
         console.error('LINE 通知發送錯誤:', error);
         return false;
