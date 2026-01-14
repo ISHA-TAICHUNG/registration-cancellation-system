@@ -177,17 +177,18 @@ async function queryRegistrations(idNumber) {
  * 取消報名
  * @param {string} idNumber - 身分證字號
  * @param {string} courseName - 課程名稱
+ * @param {string} courseDate - 開課日期
  * @param {string} clientIp - 客戶端 IP
  * @param {string} userAgent - User Agent
  * @returns {Promise<boolean>} 是否成功
  */
-async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
+async function cancelRegistration(idNumber, courseName, courseDate, clientIp, userAgent) {
     const sheets = await getSheetsClient();
     const spreadsheetId = getSpreadsheetId();
 
-    // 先查詢確認資料存在
+    // 先查詢確認資料存在（使用課程名稱 + 開課日期雙重條件匹配）
     const registrations = await queryRegistrations(idNumber);
-    const target = registrations.find(r => r.course_name === courseName);
+    const target = registrations.find(r => r.course_name === courseName && r.course_date === courseDate);
 
     if (!target) {
         throw new Error('找不到該報名資料');
@@ -241,17 +242,18 @@ async function cancelRegistration(idNumber, courseName, clientIp, userAgent) {
  * 確認上課
  * @param {string} idNumber - 身分證字號
  * @param {string} courseName - 課程名稱
+ * @param {string} courseDate - 開課日期
  * @param {string} clientIp - 客戶端 IP
  * @param {string} userAgent - User Agent
  * @returns {Promise<boolean>} 是否成功
  */
-async function confirmRegistration(idNumber, courseName, clientIp, userAgent) {
+async function confirmRegistration(idNumber, courseName, courseDate, clientIp, userAgent) {
     const sheets = await getSheetsClient();
     const spreadsheetId = getSpreadsheetId();
 
-    // 先查詢確認資料存在
+    // 先查詢確認資料存在（使用課程名稱 + 開課日期雙重條件匹配）
     const registrations = await queryRegistrations(idNumber);
-    const target = registrations.find(r => r.course_name === courseName);
+    const target = registrations.find(r => r.course_name === courseName && r.course_date === courseDate);
 
     if (!target) {
         throw new Error('找不到該報名資料');

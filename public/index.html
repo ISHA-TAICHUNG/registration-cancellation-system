@@ -981,7 +981,7 @@
             
             ${showConfirmBtn ? `
               <div class="confirm-action" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
-                <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', ${index}, '${escapeHtml(course.name_full || course.name)}')" style="background: var(--success); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', '${escapeHtml(course.course_date)}', ${index}, '${escapeHtml(course.name_full || course.name)}')" style="background: var(--success); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                   ✓ 個資無誤，確定上課
                 </button>
               </div>
@@ -992,7 +992,7 @@
                 <p class="confirm-hint">⚠️ 請輸入「我確定取消」以確認取消此報名</p>
                 <div class="form-group">
                   <input type="text" id="confirm-${index}" placeholder="請輸入「我確定取消」">
-                  <button class="btn btn-danger" onclick="cancelCourse('${escapeHtml(course.course_name)}', ${index})">
+                  <button class="btn btn-danger" onclick="cancelCourse('${escapeHtml(course.course_name)}', '${escapeHtml(course.course_date)}', ${index})">
                     取消報名
                   </button>
                 </div>
@@ -1064,7 +1064,7 @@
     }
 
     // 取消報名
-    async function cancelCourse(courseName, index) {
+    async function cancelCourse(courseName, courseDate, index) {
       const confirmInput = document.getElementById(`confirm-${index}`);
       const confirmText = confirmInput.value.trim();
 
@@ -1083,6 +1083,7 @@
           body: JSON.stringify({
             id_number: currentIdNumber,
             course_name: courseName,
+            course_date: courseDate,
             confirm_text: confirmText
           })
         });
@@ -1104,7 +1105,7 @@
     }
 
     // 確定上課
-    async function confirmCourse(courseName, index, studentName) {
+    async function confirmCourse(courseName, courseDate, index, studentName) {
       try {
         const response = await fetch(`${API_BASE}/api/confirm`, {
           method: 'POST',
@@ -1113,7 +1114,8 @@
           },
           body: JSON.stringify({
             id_number: currentIdNumber,
-            course_name: courseName
+            course_name: courseName,
+            course_date: courseDate
           })
         });
 

@@ -68,13 +68,13 @@ router.post('/query', async (req, res) => {
  */
 router.post('/cancel', async (req, res) => {
     try {
-        const { id_number, course_name, confirm_text } = req.body;
+        const { id_number, course_name, course_date, confirm_text } = req.body;
 
         // 驗證必要欄位
-        if (!id_number || !course_name || !confirm_text) {
+        if (!id_number || !course_name || !course_date || !confirm_text) {
             return res.status(400).json({
                 success: false,
-                error: '請提供完整資料（身分證、課程名稱、確認文字）'
+                error: '請提供完整資料（身分證、課程名稱、開課日期、確認文字）'
             });
         }
 
@@ -99,7 +99,7 @@ router.post('/cancel', async (req, res) => {
         const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
         const userAgent = req.headers['user-agent'] || 'unknown';
 
-        await cancelRegistration(formattedId, course_name, clientIp, userAgent);
+        await cancelRegistration(formattedId, course_name, course_date, clientIp, userAgent);
 
         res.json({
             success: true,
@@ -121,13 +121,13 @@ router.post('/cancel', async (req, res) => {
  */
 router.post('/confirm', async (req, res) => {
     try {
-        const { id_number, course_name } = req.body;
+        const { id_number, course_name, course_date } = req.body;
 
         // 驗證必要欄位
-        if (!id_number || !course_name) {
+        if (!id_number || !course_name || !course_date) {
             return res.status(400).json({
                 success: false,
-                error: '請提供完整資料（身分證、課程名稱）'
+                error: '請提供完整資料（身分證、課程名稱、開課日期）'
             });
         }
 
@@ -144,7 +144,7 @@ router.post('/confirm', async (req, res) => {
         const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
         const userAgent = req.headers['user-agent'] || 'unknown';
 
-        await confirmRegistration(formattedId, course_name, clientIp, userAgent);
+        await confirmRegistration(formattedId, course_name, course_date, clientIp, userAgent);
 
         res.json({
             success: true,
