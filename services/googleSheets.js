@@ -6,6 +6,7 @@ const { sendCancellationNotice } = require('./lineNotify');
 
 // 工作表名稱
 const REGISTRATIONS_SHEET = 'registrations';
+const SEARCH_LOGS_SHEET = 'search_logs';
 
 /**
  * 取得台灣時間字串 (UTC+8)
@@ -283,9 +284,43 @@ async function confirmRegistration(idNumber, courseName, courseDate, clientIp, u
     return true;
 }
 
+/**
+ * 記錄搜尋紀錄到 search_logs 工作表
+ * @param {string} idNumber - 身分證字號
+ * @param {number} resultCount - 查詢結果數量
+ * @param {string} clientIp - 客戶端 IP
+ * @param {string} userAgent - User Agent
+ */
+async function logSearchQuery(idNumber, resultCount, clientIp, userAgent) {
+    try {
+        const sheets = await getSheetsClient();
+        const spreadsheetId = getSpreadsheetId();
+        const searchTime = getTaiwanTime();
+
+        // 遮蔽身分證：保留前 3 碼和後 2 碼，中間遮蔽
+        // 例：A12****89
+        const maskedId = idNumber.length >= 5
+            ? idNumber.slice(0, 3) + '****' + idNumber.slice(-2)
+            : idNumber;
+
+        await sheets.spreadsheets.values.append({
+            spreadsheetId,
+            range: `${SEARCH_LOGS_SHEET}!A:E`,
+            valueInputOption: 'USER_ENTERED',
+            resource: {
+                values: [[searchTime, maskedId, resultCount, clientIp, userAgent]]
+            }
+        });
+    } catch (error) {
+        // 記錄失敗不影響查詢功能，僅輸出錯誤日誌
+        console.error('搜尋紀錄寫入失敗:', error.message);
+    }
+}
+
 module.exports = {
     queryRegistrations,
     cancelRegistration,
     confirmRegistration,
+    logSearchQuery,
     maskName
 };

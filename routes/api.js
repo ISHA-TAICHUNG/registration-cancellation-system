@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { validateIdNumber, formatIdNumber } = require('../utils/validators');
-const { queryRegistrations, cancelRegistration, confirmRegistration } = require('../services/googleSheets');
+const { queryRegistrations, cancelRegistration, confirmRegistration, logSearchQuery } = require('../services/googleSheets');
 const { verifyRecaptcha } = require('../services/recaptcha');
 
 /**
@@ -41,6 +41,11 @@ router.post('/query', async (req, res) => {
         }
 
         const registrations = await queryRegistrations(formattedId);
+
+        // 非同步記錄搜尋紀錄（不阻塞查詢回應）
+        const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+        const userAgent = req.headers['user-agent'] || 'unknown';
+        logSearchQuery(formattedId, registrations.length, clientIp, userAgent);
 
         // 直接返回完整資料（不遮蔽姓名）
         const responseData = registrations.map(r => ({
