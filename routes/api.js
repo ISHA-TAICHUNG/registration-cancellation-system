@@ -42,10 +42,8 @@ router.post('/query', async (req, res) => {
 
         const registrations = await queryRegistrations(formattedId);
 
-        // 非同步記錄搜尋紀錄（不阻塞查詢回應）
-        const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-        const userAgent = req.headers['user-agent'] || 'unknown';
-        logSearchQuery(formattedId, registrations.length, clientIp, userAgent);
+        // 非同步記錄搜尋時間到 K 欄（不阻塞查詢回應）
+        logSearchQuery(registrations);
 
         // 直接返回完整資料（不遮蔽姓名）
         const responseData = registrations.map(r => ({

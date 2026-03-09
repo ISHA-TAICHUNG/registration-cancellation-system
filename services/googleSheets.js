@@ -6,7 +6,7 @@ const { sendCancellationNotice } = require('./lineNotify');
 
 // 工作表名稱
 const REGISTRATIONS_SHEET = 'registrations';
-const SEARCH_LOGS_SHEET = 'search_logs';
+
 
 /**
  * 取得台灣時間字串 (UTC+8)
@@ -285,30 +285,28 @@ async function confirmRegistration(idNumber, courseName, courseDate, clientIp, u
 }
 
 /**
- * 記錄搜尋紀錄到 search_logs 工作表
- * @param {string} idNumber - 身分證字號
- * @param {number} resultCount - 查詢結果數量
- * @param {string} clientIp - 客戶端 IP
- * @param {string} userAgent - User Agent
+ * 記錄搜尋紀錄到 registrations 工作表的 K 欄（最後查詢時間）
+ * @param {Array} registrations - 查詢到的報名資料（含 row_index）
  */
-async function logSearchQuery(idNumber, resultCount, clientIp, userAgent) {
+async function logSearchQuery(registrations) {
+    if (!registrations || registrations.length === 0) return;
+
     try {
         const sheets = await getSheetsClient();
         const spreadsheetId = getSpreadsheetId();
         const searchTime = getTaiwanTime();
 
-        // 遮蔽身分證：保留前 3 碼和後 2 碼，中間遮蔽
-        // 例：A12****89
-        const maskedId = idNumber.length >= 5
-            ? idNumber.slice(0, 3) + '****' + idNumber.slice(-2)
-            : idNumber;
+        // 批次更新所有匹配行的 K 欄
+        const data = registrations.map(r => ({
+            range: `${REGISTRATIONS_SHEET}!K${r.row_index}`,
+            values: [[searchTime]]
+        }));
 
-        await sheets.spreadsheets.values.append({
+        await sheets.spreadsheets.values.batchUpdate({
             spreadsheetId,
-            range: `${SEARCH_LOGS_SHEET}!A:E`,
-            valueInputOption: 'USER_ENTERED',
             resource: {
-                values: [[searchTime, maskedId, resultCount, clientIp, userAgent]]
+                valueInputOption: 'USER_ENTERED',
+                data
             }
         });
     } catch (error) {
