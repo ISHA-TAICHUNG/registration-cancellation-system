@@ -931,9 +931,10 @@
           statusText = '已報名';
         }
 
-        // 顯示操作按鈕：registered 可確認/取消，confirmed 只能取消
-        const showConfirmBtn = isRegistered;
+        // 顯示操作按鈕：registered/confirmed 皆可操作（confirmed 可再次開啟報到系統）
+        const showConfirmBtn = isRegistered || isConfirmed;
         const showCancelCheckbox = isRegistered || isConfirmed;
+        const confirmBtnLabel = isConfirmed ? '✓ 再次開啟報到系統' : '✓ 個資無誤，確定上課';
 
         return `
           <div class="course-item ${isCancelled ? 'cancelled' : ''}" data-index="${index}">
@@ -982,7 +983,7 @@
             ${showConfirmBtn ? `
               <div class="confirm-action" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
                 <button class="btn btn-success" onclick="confirmCourse('${escapeHtml(course.course_name)}', '${escapeHtml(course.course_date)}', ${index}, '${escapeHtml(course.name_full || course.name)}')" style="background: var(--success); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                  ✓ 個資無誤，確定上課
+                  ${confirmBtnLabel}
                 </button>
               </div>
             ` : ''}
@@ -1106,6 +1107,10 @@
 
     // 確定上課
     async function confirmCourse(courseName, courseDate, index, studentName) {
+      // 透過畫面狀態判斷是否已確認過（avoid re-write）
+      const courseItem = document.querySelector(`.course-item[data-index="${index}"]`);
+      const wasConfirmed = courseItem && courseItem.querySelector('.status-confirmed');
+
       try {
         const response = await fetch(`${API_BASE}/api/confirm`, {
           method: 'POST',
@@ -1132,7 +1137,11 @@
         const externalUrl = `https://stusys-b.isha.org.tw/LA03.aspx?SeaNAME=${encodeURIComponent(studentName)}&SeaID=${idLast5}`;
         window.open(externalUrl, '_blank');
 
-        showModal('success', '確認成功', '您已成功確認上課。系統已記錄此次操作，並已開啟報到系統。');
+        if (wasConfirmed) {
+          showModal('success', '已重新開啟報到系統', '此課程先前已確認，已為您再次開啟報到系統分頁。');
+        } else {
+          showModal('success', '確認成功', '您已成功確認上課。系統已記錄此次操作，並已開啟報到系統。');
+        }
 
         // 重新查詢以更新狀態
         await queryRegistrations(currentIdNumber);

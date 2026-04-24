@@ -260,12 +260,14 @@ async function confirmRegistration(idNumber, courseName, courseDate, clientIp, u
         throw new Error('找不到該報名資料');
     }
 
-    if (target.status === '確定上課') {
-        throw new Error('此課程報名已經確認');
-    }
-
     if (target.status === '已取消') {
         throw new Error('此課程報名已經取消，無法確認');
+    }
+
+    // 已確認：視為 idempotent 操作，不重寫稽核紀錄，直接回傳成功
+    // 讓前端能再次開啟報到系統連結
+    if (target.status === '確定上課') {
+        return true;
     }
 
     const confirmedAt = getTaiwanTime();
